@@ -25,7 +25,7 @@ public class WallSphere {
         gl.glPushMatrix();
         gl.glRotated(270,1,0,0);
         texture.bind(gl);
-        glu.gluSphere(q,100,20,20);
+        glu.gluSphere(q,200,50,50);
         gl.glPopMatrix();
     }
 }

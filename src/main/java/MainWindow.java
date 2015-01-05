@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -41,11 +42,15 @@ public class MainWindow extends JFrame implements GLEventListener, KeyListener{
     private Map<Integer,Boolean> keys = new HashMap<>();
     private Texture currentTexture;
     private WallSphere wallSphere;
+    private List<Texture> textures;
+    private int tex = 0;
+    private long lastSwitch = System.currentTimeMillis();
 
     public MainWindow(GLCanvas canvas){
         this.canvas = canvas;
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(100, 100, windowWidth, windowHeight);
+        initKeys();
     }
 
     @Override
@@ -72,18 +77,34 @@ public class MainWindow extends JFrame implements GLEventListener, KeyListener{
         //place a directional light directly above everything, this is the sun
         this.light0Pos = new float[]{0,1,0,0};
         gl.glLoadIdentity();
-        initTextures();
+        loadTextures();
+        setTexture(tex);
         initCamera();
-        initKeys();
-        wallSphere = new WallSphere(glu,currentTexture);
+
+    }
+
+    private void loadTextures() {
+        textures = new ArrayList<>();
+        try {
+            File[] fs = (new File(ClassLoader.getSystemResource("images").toURI())).listFiles();
+            if(fs == null){
+                throw new RuntimeException("No images found.");
+            }
+            for (File f: fs){
+                textures.add(TextureIO.newTexture(new ByteArrayInputStream(Files.readAllBytes(f.toPath())),true,"jpg"));
+            }
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
     }
 
     /**
      * This method loads up all of the textures we need to display our game
      */
-    private void initTextures() {
+    private void setTexture(int pos) {
         try {
-            currentTexture = TextureIO.newTexture(new ByteArrayInputStream(Files.readAllBytes((new File("/home/robertk11/trippix/spheres/burg.jpg")).toPath())),true,"jpg");
+            currentTexture = textures.get(pos);
+            wallSphere = new WallSphere(glu,currentTexture);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -100,12 +121,6 @@ public class MainWindow extends JFrame implements GLEventListener, KeyListener{
         keys.put(KeyEvent.VK_RIGHT,false);
         keys.put(KeyEvent.VK_UP,false);
         keys.put(KeyEvent.VK_DOWN,false);
-        keys.put(KeyEvent.VK_S,false);
-        keys.put(KeyEvent.VK_W,false);
-        keys.put(KeyEvent.VK_D,false);
-        keys.put(KeyEvent.VK_A,false);
-        keys.put(KeyEvent.VK_R,false);
-        keys.put(KeyEvent.VK_CONTROL,false);
     }
 
     /**
@@ -113,8 +128,8 @@ public class MainWindow extends JFrame implements GLEventListener, KeyListener{
      */
     private void initCamera(){
         //start the user in the corner, facing the other corner
-        playerX = 0; playerY = 6; playerZ = 0;
-        viewAngle = 45;
+        playerX = 0; playerY = 3; playerZ = 0;
+        viewAngle = 0;
         stepX = Math.cos( Math.toRadians(viewAngle));
         stepZ = Math.sin( Math.toRadians(viewAngle));
         lookX = playerX + (LOOK_AT_DIST * stepX);
@@ -130,12 +145,12 @@ public class MainWindow extends JFrame implements GLEventListener, KeyListener{
      */
     private void processKeys(){
         //if we're left or right key, rotate the viewangle left or right
-        if(keys.get(KeyEvent.VK_LEFT)||keys.get(KeyEvent.VK_A)){
+        if(keys.get(KeyEvent.VK_LEFT)){
             viewAngle -= ROTATE_SPEED;
             stepX = Math.cos(Math.toRadians(viewAngle));
             stepZ = Math.sin(Math.toRadians(viewAngle));
             //make this an else if so they can't push both at the same time
-        } else if(keys.get(KeyEvent.VK_RIGHT)||keys.get(KeyEvent.VK_D)){
+        } else if(keys.get(KeyEvent.VK_RIGHT)){
             viewAngle += ROTATE_SPEED;
             stepX = Math.cos(Math.toRadians(viewAngle));
             stepZ = Math.sin(Math.toRadians(viewAngle));
@@ -147,6 +162,16 @@ public class MainWindow extends JFrame implements GLEventListener, KeyListener{
             lookY -= ROTATE_SPEED;
         }
 
+        if(keys.get(KeyEvent.VK_SPACE)){
+            if(System.currentTimeMillis() - lastSwitch >= 500){
+                tex++;
+                if(tex == textures.size()){
+                    tex = 0;
+                }
+                setTexture(tex);
+                lastSwitch = System.currentTimeMillis();
+            }
+        }
         //new place to look
         lookX = playerX + (stepX * LOOK_AT_DIST);
         lookZ = playerZ + (stepZ * LOOK_AT_DIST);

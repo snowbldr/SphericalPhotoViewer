@@ -9,7 +9,6 @@ public class Main {
 
 
     public static void main(String[] args) {
-
         GLCanvas canvas = new GLCanvas();
         MainWindow mainWindow = new MainWindow(canvas);
         //make a canvas and set it up
