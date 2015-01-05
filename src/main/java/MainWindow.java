@@ -83,10 +83,9 @@ public class MainWindow extends JFrame implements GLEventListener, KeyListener{
      */
     private void initTextures() {
         try {
-            currentTexture = TextureIO.newTexture(new ByteArrayInputStream(Files.readAllBytes((new File("/home/robertk11/trippix/spheres/20141224_095242.jpg")).toPath())),true,"jpg");
+            currentTexture = TextureIO.newTexture(new ByteArrayInputStream(Files.readAllBytes((new File("/home/robertk11/trippix/spheres/burg.jpg")).toPath())),true,"jpg");
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("uh-oh");
         }
     }
 
